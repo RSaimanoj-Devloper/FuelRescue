@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* LIGHT THEME COMPREHENSIVE OVERRIDES */
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.light .bg-slate-950,
+html.light .bg-black {
+  background-color: #f8fafc !important;
+}
+
+html.light .bg-slate-900 {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-slate-900\/95,
+html.light .bg-slate-950\/95 {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+}
+
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.light .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/80 {
+  background-color: #e2e8f0 !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Base text transformation for light mode, while preserving colored action buttons */
+html.light .text-white:not(.keep-white) {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Ensure buttons with solid brand/status backgrounds preserve crisp white text */
+html.light .bg-orange-500,
+html.light .bg-orange-600,
+html.light .bg-red-500,
+html.light .bg-red-600,
+html.light .bg-emerald-500,
+html.light .bg-emerald-600,
+html.light .bg-blue-500,
+html.light .bg-blue-600,
+html.light .bg-purple-600,
+html.light .bg-indigo-600,
+html.light [class*="bg-orange-500"] *,
+html.light [class*="bg-orange-600"] *,
+html.light [class*="bg-red-600"] *,
+html.light [class*="bg-red-500"] *,
+html.light [class*="bg-emerald-600"] *,
+html.light [class*="bg-blue-600"] * {
+  color: #ffffff;
+}
+
+/* Input fields in light mode */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Table hover rows */
+html.light tr:hover {
+  background-color: #f8fafc !important;
+}

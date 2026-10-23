@@ -1,0 +1,6 @@
+{
+  "name": "FuelRescue — Emergency Fuel Assistance",
+  "description": "Emergency fuel assistance system for stranded vehicles on highways with offline-first request creation, provider matching, GPS tracking, and automated sync.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

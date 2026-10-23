@@ -1,0 +1,634 @@
+# BUILD A COMPLETE FULL-STACK APPLICATION: EMERGENCY FUEL ASSISTANCE SYSTEM
+
+## 1. PROJECT OBJECTIVE
+
+Build a complete, responsive, full-stack web application named **FuelRescue — Emergency Fuel Assistance for Stranded Vehicles**.
+
+The application helps drivers stranded on Indian highways because of insufficient fuel request emergency fuel assistance, share their exact location, identify suitable fuel sources or support providers, track request status, and complete assistance transactions.
+
+The application must work offline for essential request creation and local record access. When internet connectivity returns, pending requests must synchronize with the backend server automatically and safely.
+
+**15-second product explanation:**
+“Stranded without fuel? Request emergency assistance, find suitable nearby fuel support, and track delivery—even offline. Your request syncs automatically when connectivity returns.”
+
+Use the attached project document, *PSE_Modules_1_2_3_Filled_Emergency_Fuel_Assistance.docx*, as the foundation for the system requirements. Preserve its problem definition, stakeholder needs, system boundaries, causal relationships, leverage point, and evidence-validation principles.
+
+Do not build merely a landing page or static demonstration. Build the actual frontend, backend, database integration, authentication, offline persistence, synchronization workflow, dashboards, and operational features.
+
+## 2. MANDATORY TECHNOLOGY STACK
+
+Use these technologies throughout the application.
+
+### Frontend
+- React.js with Vite.
+- JavaScript or TypeScript; prefer TypeScript for maintainability.
+- React Router for navigation.
+- Tailwind CSS for styling.
+- A reusable component architecture.
+- Responsive layouts for mobile, tablet, and desktop.
+- Progressive Web App (PWA) capabilities.
+- Service Worker for offline application caching.
+- IndexedDB, preferably through Dexie.js, for offline requests and locally cached records.
+- Google Maps Platform for maps, directions, and location visualization.
+- Firebase Cloud Messaging for push notifications, where supported.
+
+### Backend
+- Java with Spring Boot.
+- Spring Web for REST APIs.
+- Spring Security for authentication and authorization.
+- JWT access-token authentication.
+- Bean Validation for incoming request validation.
+- Spring Data JPA with Hibernate.
+- Database migrations using Flyway.
+- OpenAPI/Swagger documentation.
+
+### Database
+- **Aiven Console-managed PostgreSQL database.**
+- Configure the database through Aiven's connection details and environment variables.
+- Use the PostgreSQL connection URI or individual connection properties as appropriate.
+- Support SSL/TLS connections as required by Aiven.
+- Store users, vehicles, assistance requests, providers, transactions, synchronization metadata, notifications, and audit records in PostgreSQL.
+- Never expose database credentials in React code or commit secrets to source control.
+
+Aiven Console is the database hosting and management platform; PostgreSQL is the database engine.
+
+### Deployment
+- Frontend: Vercel, Netlify, or another suitable static frontend host.
+- Backend: Render, Railway, AWS, or another suitable Java hosting platform.
+- Database: Aiven PostgreSQL.
+- Provide separate development and production environment configurations.
+
+Do not silently replace React with Flutter, Aiven PostgreSQL with Firebase, or Spring Boot with Node.js.
+
+## 3. USER ROLES
+
+Implement role-based access control for the following roles.
+
+### A. Driver / Customer
+- Register and sign in.
+- Manage profile and vehicle information.
+- Request emergency fuel assistance.
+- Share GPS location or manually select a location.
+- Choose petrol or diesel and enter required quantity.
+- View suitable nearby fuel sources and registered assistance providers.
+- View estimated distance and available route information when supported.
+- Track the request and assistance status.
+- View estimated charges and payment status.
+- View previous requests and transaction receipts.
+- Create a request without internet access and synchronize it later.
+
+### B. Assistance Provider
+- Register and manage provider information.
+- Submit required verification information.
+- Set supported fuel types, service area, availability, and operating hours.
+- Receive eligible assistance requests.
+- Accept or reject requests.
+- Update progress through accepted, dispatched, arriving, delivered, and completed states.
+- View customer location and relevant request details.
+- View assigned jobs and service history.
+
+### C. Fuel Outlet / Fuel Source
+- Maintain outlet name, address, coordinates, contact information, opening hours, supported fuel types, and availability.
+- Receive or review relevant assistance requests.
+- Confirm fuel type and quantity availability.
+- Coordinate with an authorized assistance provider.
+- Maintain appropriate transaction and service records.
+
+### D. Administrator
+- Access a protected administrative dashboard.
+- View users, vehicles, outlets, providers, requests, and transactions.
+- Approve or suspend provider accounts.
+- Manage registered fuel outlets.
+- Monitor request status, failed synchronization, and service activity.
+- Review reports and operational metrics.
+- View audit logs.
+- Manage notification and application settings.
+
+Enforce permissions on the backend. Hiding a button in React is not sufficient authorization.
+
+## 4. CORE FUNCTIONAL MODULES
+
+### Module 1: Authentication and Profile Management
+Build registration, login, logout, profile editing, password management, vehicle registration, and role-based navigation.
+
+Store passwords securely using an appropriate password encoder. Validate all input on the server. Protect private APIs with Spring Security and JWT.
+
+Never store plain-text passwords or place secrets in frontend environment variables that are exposed to the browser.
+
+### Module 2: Emergency Fuel Request
+Create a complete assistance-request form containing:
+- Customer and vehicle identification.
+- Vehicle registration number or registered vehicle selection.
+- Fuel type: petrol or diesel.
+- Required fuel quantity in litres.
+- Current latitude and longitude.
+- Manually selected location if GPS is unavailable.
+- Road, highway, landmark, or nearby location description.
+- Contact information.
+- Optional description of the situation.
+- Request creation timestamp.
+- Unique client-generated request ID.
+- Server-generated request ID after successful synchronization.
+- Request status and synchronization status.
+
+Validate required fields and reasonable quantity limits.
+
+Before dispatch, show the driver a confirmation screen containing the location, fuel type, quantity, and available service or cost information.
+
+Never claim that a request has been dispatched or accepted until the appropriate server or provider confirmation is received.
+
+### Module 3: Location and Nearby Assistance
+Integrate Google Maps Platform.
+
+Implement:
+- Current-location detection with permission handling.
+- Manual location selection.
+- Map markers for registered fuel outlets and assistance providers.
+- Search for suitable nearby assistance.
+- Route and distance estimates when the required Google Maps services are enabled.
+- A clear indication of stale or unavailable location data.
+- Filters for fuel type, provider availability, and service coverage.
+
+Do not fabricate real-time fuel stock, outlet operating status, provider availability, or arrival times. Use verified backend data and clearly label estimates.
+
+If map services are unavailable, retain a usable address and coordinate-based interface.
+
+### Module 4: Provider Matching and Dispatch
+Develop a backend matching service that considers:
+- Vehicle location.
+- Required fuel type and quantity.
+- Provider service coverage.
+- Provider availability.
+- Outlet or fuel-source availability.
+- Distance and route feasibility.
+- Safety and access restrictions.
+
+Return suitable candidates and explain why each candidate is eligible.
+
+Allow a provider to explicitly accept a request. Prevent multiple providers from simultaneously claiming the same request through transactional database updates or optimistic locking.
+
+Include rejection, cancellation, reassignment, timeout handling, and failed-dispatch states.
+
+Do not automatically dispatch a provider solely because that provider is geographically closest.
+
+### Module 5: Request Tracking
+Implement a request lifecycle with validated state transitions.
+
+Suggested lifecycle:
+
+CREATED → PENDING_SYNC → SYNCED → MATCHING → PROVIDER_ACCEPTED → DISPATCHED → ARRIVING → DELIVERED → COMPLETED
+
+Additional states:
+- SYNC_FAILED
+- MATCHING_FAILED
+- REJECTED
+- CANCELLED
+
+The PENDING_SYNC state is a local synchronization state and must not be confused with server-confirmed dispatch.
+
+Display the current status, last update time, assigned provider when confirmed, contact options, and available location information.
+
+Keep an auditable history of important status changes.
+
+### Module 6: QR Code Vehicle Identification
+Implement QR-based vehicle identification.
+
+Generate a QR code associated with a registered vehicle or vehicle record. Scanning it should retrieve the appropriate vehicle identification information after authorization.
+
+Do not encode passwords, JWTs, personal contact information, or other sensitive data directly in the QR code.
+
+Use an opaque identifier or signed, limited-purpose reference. Enforce backend authorization and protect against unauthorized vehicle-data access.
+
+### Module 7: Payments and Transaction Records
+Create a transaction module containing:
+- Request ID.
+- Fuel type and quantity.
+- Confirmed fuel/service charge.
+- Payment method.
+- Payment status.
+- Transaction reference.
+- Creation and completion timestamps.
+- Receipt generation.
+
+Clearly distinguish estimated charges from confirmed charges.
+
+Provide a payment-provider integration interface. If no payment gateway credentials are configured, use an explicitly labelled sandbox or simulated payment flow. Never represent a simulated payment as a real payment.
+
+Use idempotent transaction processing and prevent duplicate charges.
+
+### Module 8: Notifications
+Implement in-app notifications for:
+- Request synchronization success or failure.
+- Request acceptance or rejection.
+- Provider dispatch.
+- Provider arrival.
+- Delivery and completion.
+- Cancellation and important service updates.
+
+Integrate Firebase Cloud Messaging for supported web push notifications after the necessary configuration and user permission.
+
+Include an in-app notification history and a fallback for unsupported or denied browser notifications.
+
+### Module 9: Driver Dashboard
+Build a driver dashboard containing:
+- A prominent “Request Emergency Fuel” action.
+- Current request and status.
+- Online/offline connectivity indicator.
+- Pending synchronization count.
+- Nearby assistance map.
+- Registered vehicles.
+- Recent requests.
+- Transaction history.
+- Notifications and profile settings.
+
+Prioritize the emergency request action above secondary information.
+
+### Module 10: Provider Dashboard
+Display:
+- Incoming requests.
+- Accept/reject controls.
+- Assigned assistance jobs.
+- Customer location and fuel requirements.
+- Job status updates.
+- Availability controls.
+- Service history.
+- Transaction and earnings summaries where relevant.
+
+### Module 11: Administrator Dashboard
+Build the admin dashboard in React.js.
+
+Include:
+- Total registered users.
+- Active and pending assistance requests.
+- Completed and cancelled requests.
+- Registered providers and outlets.
+- Provider verification status.
+- Failed synchronization records.
+- Request response and completion time metrics.
+- Recent system activity.
+- Search, filters, pagination, and date-range filtering.
+- Request and transaction detail views.
+- CSV export for authorized reports.
+
+Calculate metrics from actual database records. For an empty database, show meaningful empty states rather than invented statistics.
+
+## 5. CRITICAL REQUIREMENT: OFFLINE-FIRST OPERATION
+
+Implement the offline workflow shown in the attached diagram.
+
+NO INTERNET
+    ↓
+OPEN CACHED FUELRESCUE APPLICATION
+    ↓
+READ AVAILABLE LOCAL DATA
+    ↓
+CREATE EMERGENCY REQUEST
+    ↓
+GENERATE UNIQUE CLIENT REQUEST ID
+    ↓
+SAVE REQUEST IN INDEXEDDB
+    ↓
+MARK AS "PENDING SYNC"
+    ↓
+INTERNET BECOMES AVAILABLE
+    ↓
+TRIGGER SYNCHRONIZATION
+    ↓
+SEND PENDING REQUEST TO SPRING BOOT API
+    ↓
+SERVER VALIDATES REQUEST
+    ↓
+SERVER STORES REQUEST IN AIVEN POSTGRESQL
+    ↓
+RETURN SERVER REQUEST ID AND CONFIRMED STATUS
+    ↓
+UPDATE LOCAL RECORD
+    ↓
+MARK AS "SYNCED"
+
+### Offline implementation requirements
+
+1. Cache the application shell and essential static assets with a Service Worker so the previously loaded application can reopen offline.
+2. Save new requests in IndexedDB immediately, without waiting for the backend.
+3. Generate a UUID client_request_id for every new request.
+4. Assign PENDING_SYNC locally when no server confirmation exists.
+5. Display a visible offline banner and pending-sync indicator.
+6. Retry synchronization when connectivity returns, when the application resumes, and when the user manually requests synchronization.
+7. Use browser Background Sync where supported, with foreground retry fallbacks for browsers that do not support it.
+8. Synchronize queued records in a controlled sequence and preserve failed records for retry.
+9. Use exponential backoff for transient failures.
+10. Make server request creation idempotent using the client request ID and an appropriate database uniqueness constraint.
+11. If the same request is retried multiple times, return the existing result rather than creating duplicates.
+12. Validate every request on the backend before accepting it.
+13. Update the local record only after receiving a successful server response.
+14. Handle authentication expiry, validation errors, network timeouts, server failures, and conflicting updates.
+15. Maintain a retry count, last synchronization attempt, last error, and synchronization timestamp.
+16. Provide a manual “Sync Now” action.
+17. Show distinct states: Saved Offline, Pending Sync, Syncing, Synced, and Sync Failed.
+18. Preserve user-entered information across application restarts.
+19. Keep local and server IDs separate.
+20. Use database transactions for server-side request creation and related updates.
+
+### Essential safety limitation
+
+Offline request creation is possible, but real-time provider matching, dispatch, remote notifications, current outlet availability, and live route information require connectivity and relevant services.
+
+Clearly communicate that an offline request is saved locally and has NOT yet been transmitted to an assistance provider.
+
+Do not claim that fuel is on its way until a provider has actually accepted and confirmed the request.
+
+## 6. DATABASE DESIGN — AIVEN POSTGRESQL
+
+Create a normalized, relational PostgreSQL schema with suitable foreign keys, indexes, uniqueness constraints, and timestamps.
+
+Include at least these tables:
+
+- users
+- roles or user-role relationships
+- vehicles
+- provider_profiles
+- fuel_outlets
+- outlet_fuel_availability
+- assistance_requests
+- request_assignments
+- request_status_history
+- transactions
+- payment_records
+- notifications
+- device_tokens
+- synchronization_audit_logs
+
+Important fields for assistance_requests:
+- id: server-generated primary key.
+- client_request_id: unique client-generated UUID.
+- user_id.
+- vehicle_id.
+- fuel_type.
+- requested_quantity.
+- latitude.
+- longitude.
+- location_description.
+- request_status.
+- estimated_cost, when available.
+- confirmed_cost, when available.
+- assigned_provider_id, when assigned.
+- created_at.
+- updated_at.
+- synchronized_at, where applicable.
+- version or another concurrency-control field.
+
+Use appropriate PostgreSQL numeric types for quantities and monetary values. Avoid floating-point calculations for money.
+
+Add database migrations through Flyway. Provide an entity-relationship diagram or a clear schema document.
+
+Aiven connection details must be loaded through environment variables. Include placeholders and instructions for obtaining the host, port, database name, username, password, and SSL requirements from Aiven Console.
+
+Do not hardcode credentials or invent actual connection details.
+
+## 7. BACKEND API REQUIREMENTS
+
+Create a documented REST API under /api/v1.
+
+Implement endpoints for:
+- Authentication and user profiles.
+- Vehicle registration and QR identification.
+- Assistance request creation, retrieval, cancellation, and status tracking.
+- Pending-request synchronization and idempotent request creation.
+- Provider registration, availability, and verification.
+- Fuel outlet management and availability.
+- Matching and dispatch.
+- Provider assignment and job-status updates.
+- Transactions and payment status.
+- Notifications.
+- Administrative analytics and reports.
+- Health checks.
+
+Use appropriate HTTP methods and status codes.
+
+Return consistent JSON responses with meaningful error messages, validation details, and correlation IDs where useful.
+
+Protect all sensitive endpoints. Apply pagination and filtering to list APIs. Never trust client-submitted roles, prices, provider availability, or authorization decisions.
+
+Configure CORS for the actual deployed frontend origins rather than allowing every origin in production.
+
+Include unit tests and integration tests for critical business logic.
+
+## 8. USER INTERFACE AND VISUAL DESIGN
+
+Build a professional, trustworthy, modern roadside-assistance application.
+
+Design principles:
+- Mobile-first and responsive.
+- Clear visual hierarchy.
+- High-contrast, readable typography.
+- Consistent spacing and reusable components.
+- Accessible form labels and keyboard navigation.
+- Large touch-friendly emergency actions.
+- Loading, error, success, offline, and empty states.
+- Simple navigation with minimal steps during emergencies.
+- Consistent status indicators and clear confirmation messages.
+
+Suggested visual direction:
+- Deep navy for trust and navigation.
+- Emergency orange for important assistance actions.
+- Green for confirmed success.
+- Neutral backgrounds for forms and dashboards.
+- Map-centered layout for location-dependent screens.
+
+Do not overload the home screen with charts or decorative content.
+
+The primary driver flow must be obvious within 15 seconds of opening the application.
+
+### Required screens
+1. Landing page.
+2. Registration and login.
+3. Driver home dashboard.
+4. Vehicle management.
+5. Emergency request form.
+6. Location selection and nearby assistance map.
+7. Request confirmation.
+8. Request tracking.
+9. Offline requests and synchronization status.
+10. Request and transaction history.
+11. Provider dashboard.
+12. Fuel outlet management.
+13. Administrator dashboard.
+14. Notifications.
+15. Profile and settings.
+16. Error, unavailable-service, and empty states.
+
+Use realistic sample data only in an explicitly labelled demo environment. The production application must load real records from the backend.
+
+## 9. PROJECT ARCHITECTURE AND CODE QUALITY
+
+Organize the repository clearly, preferably as:
+
+fuelrescue/
+  frontend/
+    src/
+      components/
+      pages/
+      layouts/
+      hooks/
+      services/
+      api/
+      offline/
+      database/
+      routing/
+      types/
+      utils/
+    public/
+    tests/
+    package.json
+    .env.example
+
+  backend/
+    src/main/java/
+    src/main/resources/
+    src/test/java/
+    pom.xml
+    .env.example
+
+  docs/
+    architecture.md
+    database-schema.md
+    api-documentation.md
+    deployment-guide.md
+    testing-guide.md
+
+Provide a root README.md with complete setup instructions.
+
+Use reusable components, centralized API clients, typed request/response models, service and repository layers, configuration profiles, structured logging, and consistent exception handling.
+
+Never place database queries or sensitive business logic directly in React components.
+
+## 10. SECURITY, RELIABILITY, AND ROAD SAFETY
+
+Implement:
+- Secure password hashing.
+- JWT authentication with a considered token expiry and refresh strategy where needed.
+- Role-based authorization.
+- Server-side validation.
+- Rate limiting for sensitive endpoints.
+- Safe secret management.
+- Restricted CORS.
+- Secure database connections.
+- Protection against duplicate requests and transactions.
+- Audit trails for sensitive administrative actions.
+- Appropriate handling of location and personal data.
+- Authorization checks for QR lookups.
+- Database backups and a documented recovery approach.
+- Graceful handling of external-service failures.
+
+Display a clear roadside-safety reminder. Users should be encouraged to move to a safe location where possible and avoid unsafe actions in traffic. The application must not imply that fuel delivery replaces emergency services when a serious road-safety incident occurs.
+
+Fuel handling and delivery must comply with applicable Indian laws, safety requirements, and authorized-provider procedures. Do not implement unsafe or unverified fuel-transfer instructions.
+
+## 11. TESTING AND ACCEPTANCE CRITERIA
+
+The application is not complete until these workflows have been implemented and tested.
+
+### Test A: Normal online request
+A registered driver creates a request. The backend validates it, saves it in Aiven PostgreSQL, and returns a confirmed request ID and status.
+
+### Test B: Offline request
+The driver opens the previously cached application without internet, creates a request, and sees it saved locally with PENDING_SYNC. The request must survive an application restart.
+
+### Test C: Automatic synchronization
+After connectivity returns, the application retries the request. The backend stores it once, returns its server ID, and the frontend changes its state to SYNCED.
+
+### Test D: Duplicate prevention
+Submitting the same client_request_id repeatedly must not create duplicate assistance requests or payment records.
+
+### Test E: Synchronization failure
+A server or validation error must not silently delete the local request. Show the error, preserve the data, and provide an appropriate retry or correction action.
+
+### Test F: Provider workflow
+A provider receives a valid request, accepts it, and updates its status. The driver sees confirmed status updates.
+
+### Test G: Authorization
+A driver cannot access another driver's private requests. A provider cannot perform administrative actions. Unauthorized requests are rejected by the backend.
+
+### Test H: QR identification
+An authorized scan retrieves the appropriate vehicle reference without exposing private data to unauthorized users.
+
+### Test I: Location failure
+If GPS permission is denied or Google Maps services are unavailable, the user can enter a location manually and continue where feasible.
+
+### Test J: Responsive interface
+All essential screens work on common mobile, tablet, and desktop viewport sizes.
+
+### Test K: Database integration
+The backend connects to Aiven PostgreSQL using environment-based configuration and persists records correctly.
+
+### Test L: Payment integrity
+A simulated payment is clearly labelled as a simulation. Repeated requests cannot create duplicate charges.
+
+Provide automated tests for the most critical cases and a manual end-to-end testing checklist.
+
+## 12. IMPLEMENTATION INSTRUCTIONS FOR GOOGLE AI STUDIO
+
+Work incrementally while building the entire application.
+
+Phase 1: Analyze the attached requirements, define the architecture, database schema, API contracts, and key workflows.
+
+Phase 2: Create the React frontend, routing, design system, forms, and dashboards.
+
+Phase 3: Implement the Spring Boot backend, security, REST APIs, business services, and validation.
+
+Phase 4: Integrate Aiven PostgreSQL, database migrations, entities, repositories, and seed data for development.
+
+Phase 5: Implement the PWA, Service Worker, IndexedDB storage, offline request creation, and synchronization engine.
+
+Phase 6: Integrate Google Maps, QR identification, notifications, provider matching, and transaction records.
+
+Phase 7: Run tests, fix integration errors, verify the critical workflows, and prepare deployment documentation.
+
+For every phase:
+- Generate actual source files, not just pseudocode or descriptions.
+- Explain where each file belongs.
+- Keep frontend API calls consistent with the backend contracts.
+- Avoid placeholder buttons that appear functional but do nothing.
+- Avoid fake authentication, fake persistence, and hardcoded success responses in production paths.
+- Use development seed data only when clearly identified.
+- Run available checks and resolve errors before moving forward.
+- Maintain a checklist of implemented and outstanding features.
+- If a required external API key or account credential is unavailable, create the correct integration structure, document the missing configuration, and provide a graceful fallback.
+- Do not claim a feature is fully integrated or tested unless it actually has been verified.
+
+If the environment cannot generate or run the entire repository in one pass, build it in complete, testable phases and continue from the existing codebase rather than replacing it with a superficial prototype.
+
+## 13. REQUIRED DELIVERABLES
+
+Deliver:
+1. Complete React.js frontend.
+2. Complete Java Spring Boot backend.
+3. Aiven PostgreSQL schema and Flyway migrations.
+4. Functional authentication and authorization.
+5. Offline-first request storage and synchronization.
+6. Driver, provider, outlet, and admin interfaces.
+7. Google Maps integration structure.
+8. QR identification workflow.
+9. Notification integration.
+10. Transaction and payment-status workflow.
+11. Automated tests and test instructions.
+12. .env.example files without real secrets.
+13. README and local setup instructions.
+14. Aiven Console database configuration guide.
+15. Frontend and backend deployment instructions.
+16. API documentation.
+17. A feature-completion checklist listing anything that still requires credentials, infrastructure, or implementation.
+
+## FINAL PRIORITY
+
+Build a reliable emergency-assistance system, not just a visually attractive dashboard.
+
+The three most important qualities are:
+
+1. CLARITY — A stranded driver can understand what to do immediately.
+2. PACING — The driver can submit an essential request with minimal steps, while the application handles local persistence and synchronization automatically.
+3. CALL TO ACTION — The primary “Request Emergency Fuel” action is immediately visible and easy to use.
+
+The central technical priority is reliable, accurate information and appropriate source/provider matching, consistent with the attached PSE workbook.
+
+Begin by analyzing the project requirements and creating the architecture and implementation checklist. Then build the actual application in the phases above, preserving the specified technology stack throughout.

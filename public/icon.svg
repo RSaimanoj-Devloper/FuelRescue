@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <!-- Shield outline -->
+  <path d="M256 64 L384 112 V250 C384 340 326 405 256 448 C186 405 128 340 128 250 V112 Z" fill="#1e293b" stroke="#334155" stroke-width="12" />
+  <!-- Fuel Pump Canister & Drop -->
+  <path d="M200 170 H312 V330 C312 342 302 352 290 352 H222 C210 352 200 342 200 330 Z" fill="url(#orangeGrad)" />
+  <rect x="220" y="145" width="72" height="25" rx="6" fill="#fb923c" />
+  <rect x="235" y="195" width="42" height="35" rx="4" fill="#0f172a" />
+  <!-- Rescue cross badge -->
+  <path d="M256 250 V295 M234 272 H278" stroke="#ffffff" stroke-width="10" stroke-linecap="round" />
+  <!-- Nozzle tube on side -->
+  <path d="M312 210 Q348 210 348 245 V315 Q348 335 330 335" fill="none" stroke="#f97316" stroke-width="14" stroke-linecap="round" />
+  <!-- Location pin icon dot -->
+  <circle cx="256" cy="115" r="14" fill="#38bdf8" />
+</svg>
