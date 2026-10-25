@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenTour
 }) => {
   const { theme, toggleTheme, language, setLanguage, t, lowBatteryMode, toggleLowBatteryMode, lowNetworkMode, toggleLowNetworkMode } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, switchRolePersona } = useAuth();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
@@ -71,12 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Zone 1: Single text wordmark */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              if (currentRole === 'ADMIN') onSelectTab('ADMIN');
-              else if (currentRole === 'PROVIDER') onSelectTab('PROVIDER');
-              else if (currentRole === 'OUTLET') onSelectTab('OUTLET');
-              else onSelectTab('DRIVER_HOME');
-            }}
+            onClick={() => onSelectTab('DRIVER_HOME')}
             className="flex items-center gap-2.5 text-left focus:outline-none"
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
@@ -121,40 +116,102 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 {t.vehicles}
               </button>
+              <button
+                onClick={() => onSelectTab('CASE_STUDIES')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'CASE_STUDIES' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                Case Studies
+              </button>
+              <button
+                onClick={() => onSelectTab('FAQS')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'FAQS' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                5 FAQs
+              </button>
             </>
           )}
 
           {currentRole === 'PROVIDER' && (
-            <button
-              onClick={() => onSelectTab('PROVIDER')}
-              className={`whitespace-nowrap transition-colors ${
-                activeTab === 'PROVIDER' ? 'text-orange-400 font-bold' : 'hover:text-white'
-              }`}
-            >
-              {t.providerDispatch}
-            </button>
+            <>
+              <button
+                onClick={() => onSelectTab('PROVIDER')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'PROVIDER' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.providerDispatch}
+              </button>
+              <button
+                onClick={() => onSelectTab('DRIVER_HOME')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'DRIVER_HOME' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.driverHub}
+              </button>
+              <button
+                onClick={() => onSelectTab('TRACKER')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'TRACKER' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.tracker}
+              </button>
+            </>
           )}
 
           {currentRole === 'OUTLET' && (
-            <button
-              onClick={() => onSelectTab('OUTLET')}
-              className={`whitespace-nowrap transition-colors ${
-                activeTab === 'OUTLET' ? 'text-orange-400 font-bold' : 'hover:text-white'
-              }`}
-            >
-              {t.fuelOutlets}
-            </button>
+            <>
+              <button
+                onClick={() => onSelectTab('OUTLET')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'OUTLET' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.fuelOutlets}
+              </button>
+              <button
+                onClick={() => onSelectTab('DRIVER_HOME')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'DRIVER_HOME' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.driverHub}
+              </button>
+            </>
           )}
 
           {currentRole === 'ADMIN' && (
-            <button
-              onClick={() => onSelectTab('ADMIN')}
-              className={`whitespace-nowrap transition-colors ${
-                activeTab === 'ADMIN' ? 'text-orange-400 font-bold' : 'hover:text-white'
-              }`}
-            >
-              {t.adminMetrics}
-            </button>
+            <>
+              <button
+                onClick={() => onSelectTab('ADMIN')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'ADMIN' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.adminMetrics}
+              </button>
+              <button
+                onClick={() => onSelectTab('DRIVER_HOME')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'DRIVER_HOME' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.driverHub}
+              </button>
+              <button
+                onClick={() => onSelectTab('TRACKER')}
+                className={`whitespace-nowrap transition-colors ${
+                  activeTab === 'TRACKER' ? 'text-orange-400 font-bold' : 'hover:text-white'
+                }`}
+              >
+                {t.tracker}
+              </button>
+            </>
           )}
         </nav>
 
@@ -287,7 +344,75 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
 
-                <div className="mt-1 pt-1 px-2 space-y-1">
+                {/* Quick Persona Switcher in Dropdown */}
+                <div className="pt-2 pb-1.5 border-t border-slate-800">
+                  <span className="px-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider block mb-1">
+                    Quick Switch Persona
+                  </span>
+                  <div className="grid grid-cols-2 gap-1 px-1 text-[11px]">
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        switchRolePersona('DRIVER');
+                        onSelectTab('DRIVER_HOME');
+                      }}
+                      className={`p-1.5 rounded-lg text-left transition-colors flex items-center gap-1 ${
+                        currentRole === 'DRIVER' ? 'bg-orange-950/70 text-orange-400 font-bold border border-orange-800/60' : 'hover:bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      <span>🚗 Driver</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        switchRolePersona('ADMIN');
+                        onSelectTab('ADMIN');
+                      }}
+                      className={`p-1.5 rounded-lg text-left transition-colors flex items-center gap-1 ${
+                        currentRole === 'ADMIN' ? 'bg-purple-950/70 text-purple-400 font-bold border border-purple-800/60' : 'hover:bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      <span>🛡️ Admin</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        switchRolePersona('PROVIDER');
+                        onSelectTab('PROVIDER');
+                      }}
+                      className={`p-1.5 rounded-lg text-left transition-colors flex items-center gap-1 ${
+                        currentRole === 'PROVIDER' ? 'bg-blue-950/70 text-blue-400 font-bold border border-blue-800/60' : 'hover:bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      <span>🚨 Patrol</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        switchRolePersona('OUTLET');
+                        onSelectTab('OUTLET');
+                      }}
+                      className={`p-1.5 rounded-lg text-left transition-colors flex items-center gap-1 ${
+                        currentRole === 'OUTLET' ? 'bg-emerald-950/70 text-emerald-400 font-bold border border-emerald-800/60' : 'hover:bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      <span>⛽ Bunk</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-1 pt-1 px-2 space-y-1 border-t border-slate-800">
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      onSelectTab('DRIVER_HOME');
+                    }}
+                    className="w-full py-1.5 px-2 text-left rounded-lg hover:bg-slate-800 text-orange-400 font-bold flex items-center gap-1.5 text-xs transition-colors"
+                  >
+                    <Fuel className="w-3.5 h-3.5 text-orange-400" />
+                    <span>View Driver Homepage</span>
+                  </button>
+
                   {currentRole === 'DRIVER' && onOpenTour && (
                     <button
                       onClick={() => {
@@ -300,6 +425,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Quick Start Tour</span>
                     </button>
                   )}
+
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      onSelectTab('PRIVACY_POLICY');
+                    }}
+                    className="w-full py-1.5 px-2 text-left rounded-lg hover:bg-slate-800 text-slate-300 font-bold flex items-center gap-1.5 text-xs transition-colors"
+                  >
+                    <Shield className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Privacy Policy</span>
+                  </button>
 
                   <button
                     onClick={() => {

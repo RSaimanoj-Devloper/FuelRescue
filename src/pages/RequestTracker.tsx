@@ -48,7 +48,7 @@ export const RequestTracker: React.FC<RequestTrackerProps> = ({ requestId, onBac
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 4000);
+    const interval = setInterval(loadData, 2000);
     return () => clearInterval(interval);
   }, [requestId]);
 
@@ -235,6 +235,32 @@ export const RequestTracker: React.FC<RequestTrackerProps> = ({ requestId, onBac
                 </div>
               )}
             </div>
+        {/* Fuel Canister Release Status from Highway Bunk */}
+        {request.serviceType === 'FUEL' && (
+          <div className="mt-4 p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                <Fuel className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  Highway Bunk Safety Canister Release
+                </span>
+                <strong className="text-white text-xs">
+                  {request.canisterDispensed
+                    ? `✓ Safety Canister Dispensed by ${request.outletSourceName || 'Authorized Station'}`
+                    : `⏳ Awaiting Canister Handover at ${request.outletSourceName || 'Highway Station'}`}
+                </strong>
+              </div>
+            </div>
+
+            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+              request.canisterDispensed
+                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                : 'bg-amber-950 text-amber-400 border border-amber-800'
+            }`}>
+              {request.canisterDispensed ? 'Canister Handed Over' : 'Dispense In Progress'}
+            </span>
           </div>
         )}
 

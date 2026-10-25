@@ -39,7 +39,7 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({ onSelectRe
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 4000);
+    const interval = setInterval(loadData, 2500);
     return () => clearInterval(interval);
   }, []);
 
@@ -83,13 +83,13 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({ onSelectRe
 
   // Split requests into Active/Assigned vs Available Unclaimed
   const assignedJobs = requests.filter(r =>
-    (r.assignedProviderId === provider?.id || r.assignedProviderName === provider?.name) &&
+    (r.assignedProviderId === provider?.id || r.assignedProviderName === provider?.name || (r.status === 'MATCHING' && !r.assignedProviderId)) &&
     !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(r.status)
   );
 
   const incomingPool = requests.filter(r =>
     (r.status === 'MATCHING' || r.status === 'SYNCED') &&
-    !r.assignedProviderId
+    r.assignedProviderId !== provider?.id
   );
 
   const completedHistory = requests.filter(r =>
@@ -272,10 +272,41 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({ onSelectRe
                   </div>
                 </div>
 
+                {/* Canister Status for Fuel Requests */}
+                {job.serviceType === 'FUEL' && (
+                  <div className="py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                    <span className="text-slate-400 flex items-center gap-1.5 font-semibold">
+                      <Fuel className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Safety Canister:</span>
+                    </span>
+                    {job.canisterDispensed ? (
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Released by Fuel Station</span>
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-semibold flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Awaiting Station Release</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Status Advancement Controls */}
                 <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
                   <span className="text-xs text-slate-400">Advance Job Stage:</span>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
+                    {(job.status === 'MATCHING' || job.status === 'SYNCED' || job.status === 'PENDING_SYNC') && (
+                      <button
+                        onClick={() => handleUpdateJobStatus(job.id, 'PROVIDER_ACCEPTED')}
+                        disabled={updatingStatus === job.id}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Accept & Confirm Dispatch</span>
+                      </button>
+                    )}
                     {job.status === 'PROVIDER_ACCEPTED' && (
                       <button
                         onClick={() => handleUpdateJobStatus(job.id, 'DISPATCHED')}

@@ -129,7 +129,7 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 4000);
+    const interval = setInterval(loadData, 2500);
     return () => clearInterval(interval);
   }, []);
 

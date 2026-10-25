@@ -112,3 +112,41 @@ html.light textarea::placeholder {
 html.light tr:hover {
   background-color: #f8fafc !important;
 }
+
+/* Subtle, performant CSS animations (pre-JS smooth transitions) */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes beaconGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(234, 88, 12, 0); }
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-beaconGlow {
+  animation: beaconGlow 2s infinite ease-in-out;
+}
+
+.animate-radarSweep {
+  animation: radarSweep 8s linear infinite;
+}
+

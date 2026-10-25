@@ -7,6 +7,8 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   login: (email: string, password?: string, overrideRole?: UserRole) => Promise<boolean>;
+  loginAsDemoRole: (role: UserRole) => Promise<boolean>;
+  loginGuest: () => Promise<boolean>;
   register: (name: string, email: string, password: string, phone: string, role: UserRole) => Promise<boolean>;
   logout: () => void;
   switchRolePersona: (role: UserRole) => void;
@@ -43,9 +45,26 @@ export const DEFAULT_CREDENTIALS: Record<UserRole, { email: string; pass: string
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Always start the application on login screen only (no auto-restoring previous session)
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  // Restore persisted session from localStorage so refresh does not kick user back to login
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('fuelrescue_user');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Failed to parse cached user:', e);
+    }
+    return null;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('fuelrescue_token');
+    } catch {
+      return null;
+    }
+  });
 
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -108,6 +127,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginAsDemoRole = async (targetRole: UserRole): Promise<boolean> => {
+    const creds = DEFAULT_CREDENTIALS[targetRole];
+    return await login(creds.email, creds.pass, targetRole);
+  };
+
+  const loginGuest = async (): Promise<boolean> => {
+    return await login('driver@fuelrescue.in', 'Driver@123', 'DRIVER');
+  };
+
   const register = async (name: string, email: string, password: string, phone: string, role: UserRole): Promise<boolean> => {
     setLoginError(null);
     try {
@@ -154,8 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchRolePersona = (newRole: UserRole) => {
-    const creds = DEFAULT_CREDENTIALS[newRole];
-    login(creds.email, creds.pass, newRole);
+    loginAsDemoRole(newRole);
   };
 
   return (
@@ -166,6 +193,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isAuthenticated: !!user,
         login,
+        loginAsDemoRole,
+        loginGuest,
         register,
         logout,
         switchRolePersona,

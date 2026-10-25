@@ -146,6 +146,8 @@ export interface AssistanceRequest {
   lastSyncAttempt?: string;
   lastSyncError?: string;
   isSosEmergency?: boolean;
+  canisterDispensed?: boolean;
+  canisterDispensedAt?: string;
   createdAt: string;
   updatedAt: string;
   synchronizedAt?: string;

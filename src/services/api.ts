@@ -191,12 +191,29 @@ export const api = {
         const res = await fetch(`${API_BASE}/requests?${query.toString()}`);
         if (res.ok) {
           const serverList: AssistanceRequest[] = await res.json();
-          for (const item of serverList) {
-            await db.requests.put({
-              ...item,
-              syncStatus: 'SYNCED'
-            });
-          }
+          // Cache in IndexedDB for offline resilience asynchronously without blocking
+          try {
+            for (const item of serverList) {
+              const clientKey = item.clientRequestId || `srv-${item.id}`;
+              await db.requests.put({
+                ...item,
+                clientRequestId: clientKey,
+                syncStatus: 'SYNCED'
+              });
+            }
+          } catch {}
+
+          // Also merge any local pending-sync requests that haven't reached server yet
+          let unmergedPending: AssistanceRequest[] = [];
+          try {
+            const pending = await db.requests.filter(r => r.syncStatus === 'PENDING_SYNC' || r.syncStatus === 'SYNC_FAILED').toArray();
+            const serverIds = new Set(serverList.map(r => r.id));
+            unmergedPending = pending.filter(p => !serverIds.has(p.id) && !serverList.some(s => s.clientRequestId === p.clientRequestId));
+          } catch {}
+
+          const combined = [...serverList, ...unmergedPending];
+          combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          return combined;
         }
       } catch (e) {
         console.warn('Network fetch error, loading from IndexedDB:', e);
@@ -209,31 +226,36 @@ export const api = {
   },
 
   async getRequestById(id: string): Promise<AssistanceRequest | undefined> {
-    const local = await db.requests.filter(r => r.id === id || r.clientRequestId === id).first();
-    if (navigator.onLine && (!local || local.syncStatus === 'SYNCED')) {
+    if (navigator.onLine) {
       try {
-        const res = await fetch(`${API_BASE}/requests/${id}`);
+        const res = await fetch(`${API_BASE}/requests/${encodeURIComponent(id)}`);
         if (res.ok) {
           const remote: AssistanceRequest = await res.json();
-          await db.requests.put({ ...remote, syncStatus: 'SYNCED' });
+          try {
+            const clientKey = remote.clientRequestId || `srv-${remote.id}`;
+            await db.requests.put({ ...remote, clientRequestId: clientKey, syncStatus: 'SYNCED' });
+          } catch {}
           return remote;
         }
       } catch {}
     }
+    const local = await db.requests.filter(r => r.id === id || r.clientRequestId === id).first();
     return local;
   },
 
   async updateRequestStatus(id: string, status: string, note?: string, actorRole: string = 'PROVIDER'): Promise<AssistanceRequest | null> {
     if (navigator.onLine) {
       try {
-        const res = await fetch(`${API_BASE}/requests/${id}/status`, {
+        const res = await fetch(`${API_BASE}/requests/${encodeURIComponent(id)}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status, note, actorRole })
         });
         if (res.ok) {
           const updated = await res.json();
-          await db.requests.where('id').equals(id).modify({ status: updated.status, updatedAt: updated.updatedAt });
+          try {
+            await db.requests.where('id').equals(id).modify({ status: updated.status, updatedAt: updated.updatedAt });
+          } catch {}
           return updated;
         }
       } catch (e) {
@@ -254,14 +276,32 @@ export const api = {
 
   async providerClaimRequest(requestId: string, providerId: string): Promise<AssistanceRequest | null> {
     try {
-      const res = await fetch(`${API_BASE}/requests/${requestId}/accept`, {
+      const res = await fetch(`${API_BASE}/requests/${encodeURIComponent(requestId)}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId })
       });
       if (res.ok) {
         const updated = await res.json();
-        await db.requests.where('id').equals(requestId).modify(updated);
+        try {
+          await db.requests.where('id').equals(requestId).modify(updated);
+        } catch {}
+        return updated;
+      }
+    } catch {}
+    return null;
+  },
+
+  async dispenseCanister(requestId: string): Promise<AssistanceRequest | null> {
+    try {
+      const res = await fetch(`${API_BASE}/requests/${encodeURIComponent(requestId)}/dispense-canister`, {
+        method: 'PATCH'
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        try {
+          await db.requests.where('id').equals(requestId).modify({ canisterDispensed: true });
+        } catch {}
         return updated;
       }
     } catch {}

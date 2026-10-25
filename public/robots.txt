@@ -1,0 +1,8 @@
+# robots.txt for FuelRescue Highway Emergency Assistance
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Sitemap directive
+Sitemap: https://fuelrescue.highway/sitemap.xml

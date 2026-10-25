@@ -3,12 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>FuelRescue — Emergency Fuel Assistance</title>
-    <meta name="description" content="Emergency fuel assistance system for stranded vehicles on highways with offline-first request creation, provider matching, GPS tracking, and automated sync." />
-    <meta property="og:title" content="FuelRescue — Emergency Fuel Assistance" />
-    <meta property="og:description" content="Emergency fuel assistance system for stranded vehicles on highways with offline-first request creation, provider matching, GPS tracking, and automated sync." />
+    <title>FuelRescue – 24/7 Highway Emergency Fuel Delivery &amp; Roadside Assistance</title>
+    <meta name="description" content="Instant emergency fuel delivery (Petrol, Diesel), flatbed towing, and mobile mechanic assistance across NH 44, ORR, and Indian National Highway corridors. 15-min response promise." />
+    <link rel="canonical" href="https://fuelrescue.highway/" />
+
+    <!-- OpenGraph Social Cards -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FuelRescue Highway Operations" />
+    <meta property="og:title" content="FuelRescue – 24/7 Highway Emergency Fuel Delivery &amp; Roadside Assistance" />
+    <meta property="og:description" content="Instant emergency roadside fuel (Petrol, Diesel), certified tow trucks, and rapid patrol dispatch. Guaranteed 15-minute response promise." />
+    <meta property="og:image" content="/social-share.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="FuelRescue 24/7 Highway Emergency Roadside Assistance" />
+
+    <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FuelRescue – 24/7 Highway Emergency Fuel Delivery &amp; Roadside Assistance" />
+    <meta name="twitter:description" content="Never stranded on the highway. Instant fuel delivery, flatbed towing, and 15-minute arrival promise." />
+    <meta name="twitter:image" content="/social-share.svg" />
+
+    <!-- PWA & Mobile Icons -->
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -17,9 +32,98 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Google Analytics (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FUELRESCUE1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-FUELRESCUE1', {
+        page_title: document.title,
+        page_path: window.location.pathname
+      });
+    </script>
+
+    <!-- Schema.org Local Business & Emergency Service Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EmergencyService",
+      "name": "FuelRescue Highway Operations",
+      "image": "https://fuelrescue.highway/social-share.svg",
+      "description": "24/7 Highway Emergency Fuel Delivery, Roadside Assistance, Towing, and Mobile Mechanics along NH 44 and major expressways.",
+      "telephone": "+91-1800-44-1033",
+      "areaServed": [
+        {
+          "@type": "AdministrativeArea",
+          "name": "National Highway 44 (NH 44 Corridor)"
+        },
+        {
+          "@type": "AdministrativeArea",
+          "name": "Nehru Outer Ring Road (ORR Expressway)"
+        },
+        {
+          "@type": "AdministrativeArea",
+          "name": "National Highway 65 (NH 65)"
+        }
+      ],
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "priceRange": "₹₹",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "NHAI Highway Patrol Operations Post, Km 42 Medchal Oasis",
+        "addressLocality": "Hyderabad",
+        "addressRegion": "Telangana",
+        "postalCode": "501401",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 17.6250,
+        "longitude": 78.4790
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Highway Roadside Rescue Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Emergency Petrol & Diesel Delivery (Approved Jerrycans)"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Highway Hydraulic Flatbed Towing"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "On-Spot Mobile Mechanic & Battery Jumpstart"
+            }
+          }
+        ]
+      }
+    }
+    </script>
   </head>
   <body class="bg-slate-900 text-slate-100 antialiased font-sans selection:bg-orange-500 selection:text-white">
     <div id="root"></div>

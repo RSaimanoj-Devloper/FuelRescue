@@ -9,6 +9,13 @@ import { OutletDashboard } from './pages/OutletDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { OfflineSyncPage } from './pages/OfflineSyncPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ThankYouPage } from './pages/ThankYouPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { CaseStudiesSection } from './components/CaseStudiesSection';
+import { FaqSection } from './components/FaqSection';
+import { Breadcrumbs } from './components/Breadcrumbs';
+import { StickyMobileCta } from './components/StickyMobileCta';
 import { OneTapSOSModal } from './components/OneTapSOSModal';
 import { LoginModal } from './components/LoginModal';
 import { QuickStartTourModal } from './components/QuickStartTourModal';
@@ -17,6 +24,7 @@ import { UserRole, AssistanceRequest, ServiceType } from './types';
 import { initializeDatabase } from './offline/db';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { trackEvent } from './utils/analytics';
 import {
   Home, Fuel, Navigation, HardHat, MoreHorizontal, Database, Car,
   BookOpen, AlertOctagon, Truck, Wrench, Shield, Users, Sparkles, LogOut, Store, Radio
@@ -30,10 +38,10 @@ const ROLE_DEFAULT_TABS: Record<UserRole, string> = {
 };
 
 const ALLOWED_TABS: Record<UserRole, string[]> = {
-  DRIVER: ['DRIVER_HOME', 'EMERGENCY_FORM', 'TRACKER', 'VEHICLES', 'OFFLINE_SYNC'],
-  PROVIDER: ['PROVIDER', 'TRACKER', 'OFFLINE_SYNC'],
-  OUTLET: ['OUTLET', 'OFFLINE_SYNC'],
-  ADMIN: ['ADMIN', 'TRACKER', 'OFFLINE_SYNC']
+  DRIVER: ['DRIVER_HOME', 'EMERGENCY_FORM', 'TRACKER', 'VEHICLES', 'OFFLINE_SYNC', 'NOT_FOUND', 'THANK_YOU', 'PRIVACY_POLICY', 'CASE_STUDIES', 'FAQS'],
+  PROVIDER: ['PROVIDER', 'DRIVER_HOME', 'TRACKER', 'OFFLINE_SYNC', 'PRIVACY_POLICY', 'FAQS', 'NOT_FOUND'],
+  OUTLET: ['OUTLET', 'DRIVER_HOME', 'OFFLINE_SYNC', 'PRIVACY_POLICY', 'FAQS', 'NOT_FOUND'],
+  ADMIN: ['ADMIN', 'DRIVER_HOME', 'TRACKER', 'VEHICLES', 'OFFLINE_SYNC', 'PRIVACY_POLICY', 'FAQS', 'CASE_STUDIES', 'NOT_FOUND']
 };
 
 function FuelRescueMain() {
@@ -67,16 +75,12 @@ function FuelRescueMain() {
     }
   }, [activeTab, user?.role]);
 
-  // First Login Check: Show Quick Start Tour automatically if not seen before (for Drivers only)
+  // First Login: mark tour ready without blocking homepage viewport
   useEffect(() => {
     if (isAuthenticated && user && user.role === 'DRIVER') {
       const tourKey = `fuelrescue_tour_seen_${user.id || user.email}`;
-      const hasSeenTour = localStorage.getItem(tourKey);
-      if (!hasSeenTour) {
-        const timer = setTimeout(() => {
-          setTourModalOpen(true);
-        }, 350);
-        return () => clearTimeout(timer);
+      if (!localStorage.getItem(tourKey)) {
+        localStorage.setItem(tourKey, 'true');
       }
     }
   }, [isAuthenticated, user?.id, user?.email, user?.role]);
@@ -99,6 +103,26 @@ function FuelRescueMain() {
     }
   }, []);
 
+  // Unique page titles for enhanced SEO and tab clarity
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      DRIVER_HOME: 'Driver Hub & Highway Fuel Radar | FuelRescue',
+      EMERGENCY_FORM: 'Request Emergency Roadside Assistance | FuelRescue',
+      TRACKER: 'Live Highway Incident Telemetry Tracker | FuelRescue',
+      VEHICLES: 'Registered Vehicles & Emergency QR Passes | FuelRescue',
+      PROVIDER: 'Highway Patrol & Tow Rescue Dispatch | FuelRescue',
+      OUTLET: 'Fuel Outlets Inventory & Pricing Control | FuelRescue',
+      ADMIN: 'Command Operations & Traffic Management | FuelRescue',
+      OFFLINE_SYNC: 'Offline Synchronization Engine | FuelRescue',
+      NOT_FOUND: '404 Highway Route Not Found | FuelRescue',
+      THANK_YOU: 'Assistance Dispatched – Thank You | FuelRescue',
+      PRIVACY_POLICY: 'Driver Privacy & Geolocation Policy | FuelRescue',
+      CASE_STUDIES: 'Highway Emergency Rescue Case Studies | FuelRescue',
+      FAQS: '5 Highway Emergency FAQs | FuelRescue'
+    };
+    document.title = titles[activeTab] || 'FuelRescue – 24/7 Highway Emergency Fuel Delivery';
+  }, [activeTab]);
+
   // MANDATORY SIGN IN GATEWAY: If not authenticated, require sign in first
   if (!isAuthenticated) {
     return <AuthGatePage />;
@@ -111,7 +135,11 @@ function FuelRescueMain() {
 
   const handleRequestCreated = (req: AssistanceRequest) => {
     setActiveTrackingId(req.id || req.clientRequestId);
-    setActiveTab('TRACKER');
+    setActiveTab('THANK_YOU');
+    trackEvent('assistance_request_dispatched', {
+      serviceType: req.serviceType,
+      requestId: req.id || req.clientRequestId
+    });
   };
 
   const handleServiceSelect = (serviceType: ServiceType) => {
@@ -125,7 +153,7 @@ function FuelRescueMain() {
     if (allowed.includes(targetTab)) {
       setActiveTab(targetTab);
     } else {
-      setActiveTab(ROLE_DEFAULT_TABS[role]);
+      setActiveTab('NOT_FOUND');
     }
     setMobileMenuOpen(false);
   };
@@ -160,12 +188,13 @@ function FuelRescueMain() {
 
       {/* Main Content Viewport */}
       <main className="flex-1">
-        {activeTab === 'DRIVER_HOME' && role === 'DRIVER' && (
+        {activeTab === 'DRIVER_HOME' && (
           <DriverDashboard
             onRequestServiceClick={handleServiceSelect}
             onSelectRequest={handleSelectRequest}
             onOpenSOS={() => setSosModalOpen(true)}
             onOpenTour={() => setTourModalOpen(true)}
+            onNavigateTab={navigateTab}
           />
         )}
 
@@ -207,7 +236,60 @@ function FuelRescueMain() {
             onSelectRequest={handleSelectRequest}
           />
         )}
+
+        {activeTab === 'NOT_FOUND' && (
+          <NotFoundPage
+            onGoHome={() => navigateTab(ROLE_DEFAULT_TABS[role])}
+            onGoTracker={() => navigateTab('TRACKER')}
+            onGoSOS={() => setSosModalOpen(true)}
+            onGoFaqs={() => navigateTab('FAQS')}
+            onGoPrivacy={() => navigateTab('PRIVACY_POLICY')}
+          />
+        )}
+
+        {activeTab === 'THANK_YOU' && (
+          <ThankYouPage
+            requestId={activeTrackingId}
+            serviceType={selectedServiceType}
+            onGoTracker={() => navigateTab('TRACKER')}
+            onGoHome={() => navigateTab('DRIVER_HOME')}
+          />
+        )}
+
+        {activeTab === 'PRIVACY_POLICY' && (
+          <PrivacyPolicyPage
+            onGoHome={() => navigateTab(ROLE_DEFAULT_TABS[role])}
+          />
+        )}
+
+        {activeTab === 'CASE_STUDIES' && (
+          <div className="max-w-6xl mx-auto px-4 py-6 space-y-6 animate-fadeIn">
+            <Breadcrumbs
+              items={[{ label: 'Highway Rescue Case Studies', active: true }]}
+              onHomeClick={() => navigateTab('DRIVER_HOME')}
+            />
+            <CaseStudiesSection onRequestClick={() => handleServiceSelect('FUEL')} />
+          </div>
+        )}
+
+        {activeTab === 'FAQS' && (
+          <div className="max-w-4xl mx-auto px-4 py-6 space-y-6 animate-fadeIn">
+            <Breadcrumbs
+              items={[{ label: '5 Highway Emergency FAQs', active: true }]}
+              onHomeClick={() => navigateTab('DRIVER_HOME')}
+            />
+            <FaqSection />
+          </div>
+        )}
       </main>
+
+      {/* Sticky Mobile CTA for Stranded Highway Drivers */}
+      {role === 'DRIVER' && activeTab === 'DRIVER_HOME' && (
+        <StickyMobileCta
+          onRequestFuel={() => handleServiceSelect('FUEL')}
+          onOpenSOS={() => setSosModalOpen(true)}
+        />
+      )}
 
       {/* Mobile Bottom Navigation Bar (Thumb-Zone Ergonomics) - STRICT PRIVILEGE FILTERED */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${
